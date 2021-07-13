@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <time.h>
 #include <memory.h>
 #include <jpeglib.h>
 #include "config.h"
@@ -134,6 +135,9 @@ int transform_image(const char *input_filename, const char *output_filename) {
     output_rows_buffer[i] = &output_buffer[i * output_image_row_length];
   }
 
+  struct timespec start, end;
+  timespec_get(&start, TIME_UTC);
+
   for (size_t i = 0; i < decompressor.image_height; i++) {
     transform_input_image_row(
       scan_rows_buffer[i],
@@ -141,6 +145,10 @@ int transform_image(const char *input_filename, const char *output_filename) {
       decompressor.output_width
     );
   }
+
+  timespec_get(&end, TIME_UTC);
+  unsigned long int time_in_nano_seconds = (end.tv_sec - start.tv_sec) * 1e9 + (end.tv_nsec - start.tv_nsec);
+  printf("%lu\n", time_in_nano_seconds);
 
   for (size_t i = 0; i < compressor.image_height; i++) {
     (void)jpeg_write_scanlines(&compressor, &output_rows_buffer[i], 1);
